@@ -107,8 +107,9 @@ public class DataServlet extends HttpServlet {
       // Get the URL of the image that the user uploaded to Blobstore.
       String imageUrl = getUploadedFileUrl(request, "image");
 
-      //Get replies.
-      ArrayList<String> messageReplies = getParameter(request, "replies", "").split(",");
+      // Get replies. Use ArrayList to gather all subsequent replies on a specific tag.
+      ArrayList<String> messageReplies = new ArrayList<String>();
+      messageReplies.add(getParameter(request, "replies", ""));
 
       // Get system time.
       long timestamp = System.currentTimeMillis();
