@@ -50,10 +50,13 @@ import java.util.List;
 /** Servlet that returns some example content. TODO: modify this file to handle comments data */
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
-    int numberOfCommentsToDisplay = 0;
+    
     
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {      
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int numberOfCommentsToDisplay = 5;
+     // numberOfCommentsToDisplay = getNumberOfCommentsToDisplay(request);  
+
       if (numberOfCommentsToDisplay < 1 || numberOfCommentsToDisplay > 100) {
         response.setContentType("text/html");
         response.getWriter().println("Please enter an integer between 1 and 100.");
@@ -91,6 +94,7 @@ public class DataServlet extends HttpServlet {
       for(int i = 0; i < numberOfCommentsToDisplay; i++){
         limitedMessages.add(messages.get(i));
       }
+     // response.setContentType("text/html;");
       response.getWriter().println(gson.toJson(limitedMessages));
 
     }
@@ -106,8 +110,6 @@ public class DataServlet extends HttpServlet {
       String sender = getParameter(request, "sender", "Steven");
 
       String commentType = getParameter(request, "tags", "Default");
-      
-      numberOfCommentsToDisplay = getNumberOfCommentsToDisplay(request);
 
       String imageUrl = getUploadedFileUrl(request, "image");
 
