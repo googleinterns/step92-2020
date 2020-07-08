@@ -107,7 +107,7 @@ public class DataServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
       String message = request.getParameter("text-input");
 
-      String sender = getParameter(request, "sender", "Steven");
+      String sender = getParameter(request, "nickname", "Steven");
 
       String commentType = getParameter(request, "tags", "Default");
 
@@ -121,7 +121,7 @@ public class DataServlet extends HttpServlet {
       long timestamp = System.currentTimeMillis();
 
       Entity blogMessageEntity = new Entity("blogMessage");
-      blogMessageEntity.setProperty("sender", sender);
+      blogMessageEntity.setProperty("nickname", sender);
       blogMessageEntity.setProperty("text", message);
       blogMessageEntity.setProperty("imgUrl", imageUrl);
       blogMessageEntity.setProperty("time", timestamp);
