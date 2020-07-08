@@ -37,7 +37,7 @@ function openPage(pageName, elmnt, color) {
 /**
  * Fetches messages from the servers and adds them to the DOM.
  */
-async function getComments() {
+function getComments() {
     fetch('/data').then(response => response.json()).then((msgs) => {
    
     const statsListElement = document.getElementById('comments-container');
