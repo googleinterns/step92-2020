@@ -188,4 +188,23 @@ public class DataServlet extends HttpServlet {
       }
     }
 
+    // This mimics the doPost method above and is only for testing purposes.
+    public void doPost_ForTests(String msg, String nickname, String tag) {
+      if (tag == null || tag.isEmpty()) {
+        tag = InternalTags.defaultTag();
+      }
+
+      // TODO: Handle replies later.
+      List<String> messageReplies = new ArrayList<String>(); 
+  
+      //TODO: Add image parameter later.
+      
+      // Only put BlogMessages with a message in datastore.
+      if (msg == null || msg.isEmpty()) {
+        return;
+      }
+      putBlogsInDatastore(tag, msg, nickname, messageReplies);
+    }
+
+
 }
