@@ -31,8 +31,8 @@ import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
-import com.google.sps.data.BlogMessage;
 import com.google.sps.data.BlogHashMap;
+import com.google.sps.data.BlogMessage;
 import com.google.sps.data.InternalTags;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -52,27 +52,129 @@ import java.util.Map;
 
 @WebServlet("/data")
 public class DataServlet extends HttpServlet {
-  private int numberOfCommentsToDisplay = 0;
-  private List<String> tagsToSearch = new ArrayList<String>();
   private final static String MESSAGE_PARAMETER = "text-input";
   private final static String SENDER_PARAMETER = "sender";
   private final static String TAG_PARAMETER = "tags";
-  
-  private void putBlogsInDatastore(String tag, String message, String nickname, List<String> reply) {
-    Entity blogMessageEntity = new Entity("blogMessage");
-    blogMessageEntity.setProperty("nickname", nickname);
-    blogMessageEntity.setProperty("text", message);
-    blogMessageEntity.setProperty("time", System.currentTimeMillis());
-    blogMessageEntity.setProperty("tag", tag);
-    blogMessageEntity.setProperty("replies", reply);
-    
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(blogMessageEntity);
-  }
+  public final static String BLOG_ENTITY_KIND = "blogMessage";
 
-  private List<BlogMessage> getBlogsFromDatastore() {
-    List<BlogMessage> BlogMessages = new ArrayList<BlogMessage>();
-    Query query = new Query("blogMessage").addSort("time", SortDirection.ASCENDING);
+  @Override
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    // Get BlogMessages from Datastore.
+    List<BlogMessage> blogMessages = LoadAllBlogsOrLast(true);
+
+    // TODO: Get these from client.
+    int numberOfCommentsToDisplay = 0;
+    List<String> tagsToSearch = new ArrayList<String>();
+
+    // TODO: Use helper function for lines 73-101.
+
+    // Separate posts from replies from |blogMessages|. 
+    // Add replies to messageReplies for the respective posts.
+    List<BlogMessage> blogMessagesReplies = new ArrayList<BlogMessage>();
+    for (BlogMessage message : blogMessages) {
+      if (message.getParentID() != 0) {
+        blogMessagesReplies.add(message);
+        blogMessages.remove(message);
+      }
+    }
+
+    for (BlogMessage post : blogMessages) {
+      for (BlogMessage reply : blogMessagesReplies) {
+        if (reply.getParentID() == post.getTimestamp()) {
+          post.addReply(reply);
+        }
+      }
+    }
+
+    // Get user email
+    UserService userService = UserServiceFactory.getUserService();
+    String email = (String) userService.getCurrentUser().getEmail();
+
+    // Check to see if user follows any tags
+    if (LoadFollowedTags.hasFollowedTags(email)) {
+      List<String> newTags = LoadFollowedTags.getFollowedTags(email);
+      for (String tag : newTags) {
+        if (!tagsToSearch.contains(tag)) {
+          tagsToSearch.add(tag);
+        }
+      }
+    }
+
+    Gson gson = new Gson();
+    response.setContentType("application/json;");
+    
+    response.getWriter().println(gson.toJson(sortAndLoadFromBlogHashMap(
+        blogMessages, tagsToSearch, numberOfCommentsToDisplay)));
+  }
+    
+  @Override
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    // Get Post parameters.
+    // We can't process an empty message.
+    // Also a post without a tag will be assigned the default tag.
+    String message = request.getParameter(MESSAGE_PARAMETER);
+    if (message == null || message.isEmpty()) {
+      response.setContentType("text/html");
+      response.getWriter().println("<h2> Cannot post empty message.</h2>");
+      return;
+    }
+
+    String nickname = request.getParameter(SENDER_PARAMETER);
+    String postTag = request.getParameter(TAG_PARAMETER);
+    if (postTag == null || postTag.isEmpty()) {
+      postTag = InternalTags.defaultTag();
+    }
+
+    long parentID = 0;
+
+    // TODO: Handle replies later.
+    List<BlogMessage> messageReplies = new ArrayList<BlogMessage>(); 
+  
+    // TODO: Handle image file sent with FormData.
+
+    putBlogsInDatastore(postTag, message, nickname, messageReplies, parentID);
+    
+    // Respond with the recent post.
+    // |LoadAllBlogsOrLast| returns the recent post if false is passed.
+    Gson gson = new Gson();
+
+    response.setContentType("application/json;");
+    response.getWriter().println(gson.toJson(LoadAllBlogsOrLast(false)));    
+  }
+  
+  // HELPER FUNCTION:.........................................................................
+  private void putBlogsInDatastore(
+        String tag, String message, String nickname, List<BlogMessage> reply, long parentID) {
+    // Only put BlogMessages with a message in datastore.
+    if (message != null || !message.isEmpty()) {
+      Entity blogMessageEntity = new Entity(BLOG_ENTITY_KIND);
+      blogMessageEntity.setProperty("nickname", nickname);
+      blogMessageEntity.setProperty("text", message);
+      blogMessageEntity.setProperty("time", System.currentTimeMillis());
+      blogMessageEntity.setProperty("tag", tag);
+      blogMessageEntity.setProperty("replies", reply);
+      blogMessageEntity.setProperty("parentID", parentID);
+    
+      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+      datastore.put(blogMessageEntity);
+    }
+  }
+  
+  // HELPER FUNCTION:................................................................
+  // Loads all BlogMessages from Datastore if true is passed,
+  // Otherwise if false is passed only the recent post is loaded.
+  // This is useful because each time a user posts, we only load the last BlogMessage
+  // Which reduces the time to load datastore. 
+  private List<BlogMessage> LoadAllBlogsOrLast(boolean all) {
+    List<BlogMessage> blogMessages = new ArrayList<BlogMessage>();
+    Query query = new Query(BLOG_ENTITY_KIND);
+
+    if (all) {
+      query.addSort("time", SortDirection.ASCENDING);
+    } else {
+      query.addSort("time", SortDirection.DESCENDING);
+    }
+  
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
@@ -85,127 +187,65 @@ public class DataServlet extends HttpServlet {
       String comment = (String) entity.getProperty("text");
       String nickname = (String) entity.getProperty("nickname");
       String email = (String) userService.getCurrentUser().getEmail();
-      ArrayList<String> messageReplies = (ArrayList) entity.getProperty("replies");
+      long parentID = (long) entity.getProperty("parentID");
+      ArrayList<BlogMessage> messageReplies = (ArrayList) entity.getProperty("replies");
+
       BlogMessage message = new BlogMessage(
-            messageId, tag, comment, nickname, email, messageReplies, timestamp);
-      BlogMessages.add(message);
-    }
-    return BlogMessages;
-  }
-    
-  @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    // Get BlogMessages from Datastore.
-    List<BlogMessage> BlogMessages = getBlogsFromDatastore();
-
-    // Create BlogHashMap Object and put BlogMessages in the map.
-    BlogHashMap blogMap = new BlogHashMap();
-    blogMap.putInMap(BlogMessages);
-
-    // Load messages from BlogHashMap and respond with gson.
-    LinkedList<BlogMessage> loadedBlogMessages = blogMap.getMessages(
-        tagsToSearch, numberOfCommentsToDisplay);
-
-    //get user email
-    UserService userService = UserServiceFactory.getUserService();
-    String email = (String) userService.getCurrentUser().getEmail();
-
-    //check to see if user follows any tags
-    if (LoadFollowedTags.hasFollowedTags(email)) {
-      List<String> newTags = LoadFollowedTags.getFollowedTags(email);
-      for (String tag : newTags) {
-        if (!tagsToSearch.contains(tag)) {
-          tagsToSearch.add(tag);
-        }
+            messageId, tag, comment, nickname, email, messageReplies, timestamp, parentID);
+      blogMessages.add(message);
+      if (!all) {
+        break;
       }
-      LinkedList<BlogMessage> followedBlogMessages = blogMap.getMessages(
-          tagsToSearch, numberOfCommentsToDisplay);
-
-      Gson gson = new Gson();
-      response.setContentType("application/json;");
-    
-      response.getWriter().println(gson.toJson(followedBlogMessages));
-      return;
     }
-
-    Gson gson = new Gson();
-    response.setContentType("application/json;");
-    
-    response.getWriter().println(gson.toJson(loadedBlogMessages));
-    return;
+    return blogMessages;
   }
-    
-  @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    // Get Post parameters.
-    String message = request.getParameter(MESSAGE_PARAMETER);
-    String nickname = request.getParameter(SENDER_PARAMETER);
-    String postTag = request.getParameter(TAG_PARAMETER);
-    if (postTag == null || postTag.isEmpty()) {
-      postTag = InternalTags.defaultTag();
-    }
-
-    // TODO: Handle replies later.
-    List<String> messageReplies = new ArrayList<String>(); 
   
-    //TODO: Handle image file sent with FormData.
-      
-    // Only put BlogMessages with a message in datastore.
-    if (message == null || message.isEmpty()) {
-      return;
-    }
-    putBlogsInDatastore(postTag, message, nickname, messageReplies);
+  // HELPER FUNCTION:........................................................................ 
+  // Puts BlogMessages in BlogHashMap and loads the requested parameters.
+  private LinkedList<BlogMessage> sortAndLoadFromBlogHashMap(
+        List<BlogMessage> blogMessages, List<String> tagsToSearch, int loadAmount) {
+    BlogHashMap blogMap = new BlogHashMap();
+    blogMap.putInMap(blogMessages);
 
-    // To get the recently posted message, add its tag to the |tagsToSearch| list.
-    // If the list has tags already, clear them before adding the tag.
-    // Our goal is to get the recently posted message.
-    tagsToSearch.clear();
-    tagsToSearch.add(postTag);
-    
-    // We want to load only the recent post.
-    numberOfCommentsToDisplay = 1; 
-    
-    // Now we call |doGet| to load and respond with the message.
-    // |doGet| passes the |tagsToSearch| and |numberOfCommentsToDisplay| to the 
-    // BlogHashMap's getMessages method, which responds with the recent post.
-    doGet(request, response);
+    return blogMap.getMessages(tagsToSearch, loadAmount);
   }
+  
+  // HELPER FUNCTION:........................................................................
+  // Returns a URL that points to the uploaded file, or null if the user didn't upload a file.
+  private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get(formInputElementName);
 
-    // Returns a URL that points to the uploaded file, or null if the user didn't upload a file.
-    private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
-      BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-      Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
-      List<BlobKey> blobKeys = blobs.get(formInputElementName);
-
-      if (blobKeys == null || blobKeys.isEmpty()) {
-        return null;
-      }
-
-      // Our form only contains a single file input, so get the first index.
-      BlobKey blobKey = blobKeys.get(0);
-
-      // User submitted form without selecting a file, so we can't get a URL. (live server)
-      BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
-      if (blobInfo.getSize() == 0) {
-        blobstoreService.delete(blobKey);
-        return null;
-      }
-
-      // We could check the validity of the file here, e.g. to make sure it's an image file
-      // https://stackoverflow.com/q/10779564/873165
-
-      // Use ImagesService to get a URL that points to the uploaded file.
-      ImagesService imagesService = ImagesServiceFactory.getImagesService();
-      ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
-
-      // To support running in Google Cloud Shell with AppEngine's dev server, we must use the relative
-      // path to the image, rather than the path returned by imagesService which contains a host.
-      try {
-        URL url = new URL(imagesService.getServingUrl(options));
-        return url.getPath();
-      } catch (MalformedURLException e) {
-        return imagesService.getServingUrl(options);
-      }
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return null;
     }
+
+    // Our form only contains a single file input, so get the first index.
+    BlobKey blobKey = blobKeys.get(0);
+
+    // User submitted form without selecting a file, so we can't get a URL. (live server)
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return null;
+    }
+
+    // We could check the validity of the file here, e.g. to make sure it's an image file
+    // https://stackoverflow.com/q/10779564/873165
+
+    // Use ImagesService to get a URL that points to the uploaded file.
+    ImagesService imagesService = ImagesServiceFactory.getImagesService();
+    ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
+
+    // To support running in Google Cloud Shell with AppEngine's dev server, we must use the relative
+    // path to the image, rather than the path returned by imagesService which contains a host.
+    try {
+      URL url = new URL(imagesService.getServingUrl(options));
+      return url.getPath();
+    } catch (MalformedURLException e) {
+      return imagesService.getServingUrl(options);
+    }
+  }
 
 }
