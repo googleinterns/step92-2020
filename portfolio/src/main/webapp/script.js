@@ -175,6 +175,7 @@ async function deleteMessage(msg) {
 function commentReply() { 
   document.getElementById("blogcontent").style.display = "none";
   document.getElementById("blogreplycontent").style.display = "block";
+  document.getElementByClassName("className")
 }
  
 function fetchBlobstoreUrlAndShowForm() {
