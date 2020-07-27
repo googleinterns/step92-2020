@@ -39,12 +39,11 @@ function defaultPage() {
 }
  
 // Posts and fetches messages from the server and adds them to the DOM.
-async function sendAndGet(sender, text, tag) {
+async function sendAndGet() {
   // Get post parameters.
-  const textEle = document.getElementById(text);
-  const nameEle = document.getElementById(sender);
-  const tagEle = document.getElementById(tag);
-  const parentidEle = document.getElementById('parentID');
+  const textEle = document.getElementById('text-input');
+  const nameEle = document.getElementById('sender');
+  const tagEle = document.getElementById('tags');
 
   // TODO: use FormData function to post image file.
   
@@ -52,7 +51,7 @@ async function sendAndGet(sender, text, tag) {
   const params = new URLSearchParams();
   params.append('text-input', textEle.value);
   params.append('sender', nameEle.value);
-  params.append('parentID', parentidEle.value);
+  params.append('tags', tagEle.value);
 
   // Post parameters to the server and fetch instantly to build the page.
   fetch('/data', {method: 'POST', body: params})
@@ -134,7 +133,7 @@ function createListElement(msg) {
   replyMsgElement.style.marginTop = "5px";
   replyMsgElement.style.float = "right";
   replyMsgElement.addEventListener('click', () => {
-    openReplies(msg.timestamp, msg.tag);
+    commentReply();
   });
 
   postElement.appendChild(userElement);
@@ -199,16 +198,10 @@ async function deleteMessage(msg) {
   });
 }
 
-function openReplies(timestamp, tag) { 
+// Creates Reply
+function commentReply() { 
   document.getElementById("blogcontent").style.display = "none";
   document.getElementById("blogreplycontent").style.display = "block";
-  document.getElementById('parentID').value = timestamp;
-  document.getElementById('tags-reply').value = tag;
-}
-
-function closeReplies() { 
-  document.getElementById("blogcontent").style.display = "block";
-  document.getElementById("blogreplycontent").style.display = "none";
 }
  
 function fetchBlobstoreUrlAndShowForm() {
