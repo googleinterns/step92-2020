@@ -91,21 +91,25 @@ public class DataServlet extends HttpServlet {
       return;
     } 
  
-    // TODO: Handle image file sent with FormData.
- 
-    putBlogsInDatastore(postTag, message, nickname, parentID);
+    // Get the URL of the image that the user uploaded to Blobstore.
+    String image = getUploadedFileUrl(request, "image");
+
+    putBlogsInDatastore(postTag, message, nickname, parentID, image);
  
     // Respond with the recent post.
     // |LoadAllBlogsOrLast| returns the recent post if false is passed.
     Gson gson = new Gson();
  
     response.setContentType("application/json;");
-    response.getWriter().println(gson.toJson(DatastoreUtils.LoadAllBlogsOrLast(/*all=*/false)));   
+    response.getWriter().println(gson.toJson(DatastoreUtils.LoadAllBlogsOrLast(/*all=*/false))); 
+
+    // Redirect back to the HTML page.
+    response.sendRedirect("/index.html");  
   }
 
   // Takes BlogMessage details and puts in datastore.
   private void putBlogsInDatastore(
-        String tag, String message, String nickname, long parentID) {
+        String tag, String message, String nickname, long parentID, String image) {
     // Only put BlogMessages with a message in datastore.
     if (message == null || message.isEmpty()) {
       return;
@@ -116,6 +120,7 @@ public class DataServlet extends HttpServlet {
     blogMessageEntity.setProperty(BlogConstants.TIME, System.currentTimeMillis());
     blogMessageEntity.setProperty("tag", tag);
     blogMessageEntity.setProperty(BlogConstants.PARENTID_PARAMETER, parentID);
+    blogMessageEntity.setProperty(BlogConstants.IMAGE, image);
  
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(blogMessageEntity);

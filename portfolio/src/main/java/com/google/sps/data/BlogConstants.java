@@ -28,4 +28,5 @@ public final class BlogConstants {
   public static String ID = "id";
   public static String EMAIL = "email";
   public static String TIME = "time";
+  public static String IMAGE = "image";
 }

@@ -66,10 +66,11 @@ public final class DatastoreUtils {
       String nickname = (String) entity.getProperty("nickname");
       String email = (String) userService.getCurrentUser().getEmail();
       long parentID = (long) entity.getProperty("parentID");
+      String imageURL = (String) entity.getProperty("image");
       ArrayList<BlogMessage> messageReplies = new ArrayList<BlogMessage>();
  
       BlogMessage message = new BlogMessage(
-            messageId, tag, comment, nickname, email, messageReplies, timestamp, parentID);
+            messageId, tag, comment, nickname, email, messageReplies, timestamp, parentID, imageURL);
       blogMessages.add(message);
       if (!all) {
         break;

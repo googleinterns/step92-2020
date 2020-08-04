@@ -144,6 +144,8 @@ function createListElement(msg) {
 
   const messageElement = document.createElement('span');
   messageElement.innerText = msg.message;
+
+  const imgElement = createImgElement(msg.image);
   
   const userElement = document.createElement('span');
   if (msg.nickname === undefined || msg.nickname === null) {
@@ -179,6 +181,7 @@ function createListElement(msg) {
 
   divEle.appendChild(userElement);
   divEle.appendChild(messageElement);
+  divEle.appendChile(imgElement);
   divEle.appendChild(timeElement);
   divEle.appendChild(replyMsgElement);
   divEle.appendChild(deleteMsgElement);
@@ -199,6 +202,8 @@ function createListElementHome(msg) {
   const messageElement = document.createElement('span');
   messageElement.innerText = msg.message;
   
+  const imgElement = createImgElement(msg.image);
+  
   const userElement = document.createElement('span');
   if (msg.nickname === undefined || msg.nickname === null) {
     userElement.innerHTML = "<b><i>_Anonymous</i></b>";
@@ -217,6 +222,7 @@ function createListElementHome(msg) {
   
   postElement.appendChild(userElement);
   postElement.appendChild(messageElement);
+  postElement.appendChild(imgElement);
   postElement.appendChild(timeElement);
 
   return postElement;
@@ -335,7 +341,7 @@ function fetchBlobstoreUrlAndShowForm() {
         return response.text();
       })
       .then((imageUploadUrl) => {
-        const messageForm = document.getElementById('my-form');
+        const messageForm = document.getElementById('post-form');
         messageForm.action = imageUploadUrl;
         messageForm.classList.remove('hidden');
       });

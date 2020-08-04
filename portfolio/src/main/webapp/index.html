@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BIPOC Blog</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
   </head>
 
   <body onload="fetchBlobstoreUrlAndShowForm(); defaultPage(); loadPosts(); getFollowedTags();">
@@ -44,7 +45,7 @@
       <div id="blogcontent">
         <h1>Blog</h1>
         <p>Welcome to the BIPOC blog, a space to uplift BIPOC and share resources.</p>
-        <form id="post-form" enctype="multipart/form-data">
+        <form id="post-form" enctype="multipart/form-data" method="POST">
           <textarea id="post-text-input" name="text-input" rows="6" cols="60" placeholder="What's on your mind..."></textarea>
           <br/>
           <label for="tags">Choose tags:</label>
@@ -62,7 +63,7 @@
           <input class="hidden" type="text" id="post-parentID" name="parentID" value="0"><br>
           Upload an image:
           <input type="file" id="post-image" name="image">
-          <button type="submit">Post</button>
+          <button type="submit">Submit</button>
         </form> 
         
         <div id="comments-tagselectcontainer">

@@ -26,9 +26,10 @@ public final class BlogMessage {
   private final String tag;
   private final long parentID;
   private final ArrayList<BlogMessage> messageReplies;
+  private final String image;
   
   public BlogMessage(long id, String tag, String message,
-        String nickname, String email, ArrayList<BlogMessage> messageReplies, long timestamp, long parentID) {
+        String nickname, String email, ArrayList<BlogMessage> messageReplies, long timestamp, long parentID, String image) {
     this.id = id;
     this.tag = tag;
     this.message = message;
@@ -37,6 +38,7 @@ public final class BlogMessage {
     this.messageReplies = messageReplies;   
     this.timestamp = timestamp;
     this.parentID = parentID;
+    this.image = image;
   }
 
   public long getMessageId() {
@@ -57,6 +59,10 @@ public final class BlogMessage {
 
   public ArrayList<BlogMessage> getReplies() {
     return messageReplies;
+  }
+
+  public String getImageURL() {
+    return image;
   }
 
   public void addReply(BlogMessage reply) {
