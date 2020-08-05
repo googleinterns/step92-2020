@@ -106,10 +106,12 @@ async function loadPosts(){
     var i = 1;
     msgs.forEach((msg) => {
       statsListElement.appendChild(createListElement(msg));
+      statsListElement.appendChild(createImgElement(msg.image));
       if (i > HOME_LOAD_AMOUNT) {
         return true;
       }
       homeListElement.appendChild(createListElementHome(msg));
+      homeListElement.appendChild(createImgElement(msg.image));
       i++;
     })
   }).catch (function(error) {
@@ -126,9 +128,8 @@ function getCommentsTag(tag) {
     if (msg.tag == tag || tag == "") {
       statsListElement.appendChild(
         createListElement(msg.nickname + ': ' + msg.message));
-      statsListElement.appendChild(
-        createImgElement(msg.image));}
-    })   
+    }
+  })   
   });
 }
  
@@ -138,14 +139,12 @@ function createListElement(msg) {
   postElement.id = 'li' + msg.id;
  
   // Add container for posts
-  let divEle = document.createElement('div');
+  let divEle = document.createElement('span');
   divEle.className = 'post';
   divEle.id = msg.id;
 
   const messageElement = document.createElement('span');
   messageElement.innerText = msg.message;
-
-  const imgElement = createImgElement(msg.image);
   
   const userElement = document.createElement('span');
   if (msg.nickname === undefined || msg.nickname === null) {
@@ -181,7 +180,6 @@ function createListElement(msg) {
 
   divEle.appendChild(userElement);
   divEle.appendChild(messageElement);
-  divEle.appendChile(imgElement);
   divEle.appendChild(timeElement);
   divEle.appendChild(replyMsgElement);
   divEle.appendChild(deleteMsgElement);
@@ -198,11 +196,6 @@ function createListElement(msg) {
 function createListElementHome(msg) {
   const postElement = document.createElement('li');
   postElement.className = 'post';
-
-  const messageElement = document.createElement('span');
-  messageElement.innerText = msg.message;
-  
-  const imgElement = createImgElement(msg.image);
   
   const userElement = document.createElement('span');
   if (msg.nickname === undefined || msg.nickname === null) {
@@ -211,6 +204,9 @@ function createListElementHome(msg) {
     userElement.innerHTML = "<b><i>_" + msg.nickname + "</i></b>";
   }
   userElement.style.marginLeft = "15px";
+
+  const messageElement = document.createElement('span');
+  messageElement.innerText = msg.message;
 
   // TODO: move styles to style.css
   const timeElement = document.createElement('span');
@@ -222,7 +218,6 @@ function createListElementHome(msg) {
   
   postElement.appendChild(userElement);
   postElement.appendChild(messageElement);
-  postElement.appendChild(imgElement);
   postElement.appendChild(timeElement);
 
   return postElement;
