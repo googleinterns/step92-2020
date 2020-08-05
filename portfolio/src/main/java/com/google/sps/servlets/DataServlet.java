@@ -94,7 +94,9 @@ public class DataServlet extends HttpServlet {
     // Get the URL of the image that the user uploaded to Blobstore.
     String image = getUploadedFileUrl(request, "image");
 
-    putBlogsInDatastore(postTag, message, nickname, parentID, image);
+    // TODO: Handle image file sent with FormData.
+ 
+    DatastoreUtils.putBlogsInDatastore(postTag, message, nickname, parentID, image);
  
     // Respond with the recent post.
     // |LoadAllBlogsOrLast| returns the recent post if false is passed.
@@ -162,5 +164,4 @@ public class DataServlet extends HttpServlet {
       return imagesService.getServingUrl(options);
     }
   }
- 
 } 
