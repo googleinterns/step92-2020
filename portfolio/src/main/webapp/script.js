@@ -227,6 +227,7 @@ function createListElementHome(msg) {
 function createImgElement(text) {
   const imgElement = document.createElement('img');
   imgElement.src = text;
+  imgElement.id = 'imgElement';
   return imgElement;
 }
 

@@ -239,6 +239,11 @@ body, html {
   background: white;
 }
 
+#imgElement {
+  width: auto;
+  height: 300px;
+}
+
 /* Styles for followTag boxes */
 #Ft_animals {
   background: url("/Images/animals_lion.jpg");
