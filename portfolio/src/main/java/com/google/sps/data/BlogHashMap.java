@@ -154,3 +154,4 @@ public final class BlogHashMap {
     map = new LinkedHashMap<String, LinkedList<BlogMessage>>();
   }
 }
+

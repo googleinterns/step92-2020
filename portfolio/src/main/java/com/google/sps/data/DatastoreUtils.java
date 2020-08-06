@@ -39,7 +39,7 @@ public final class DatastoreUtils {
       numberOfCommentsToDisplay = 0;
       return BlogHashMapUtils.sortAndLoadFromBlogHashMap(
         blogMessages, tagsToSearch, numberOfCommentsToDisplay);
-    } 
+    }
      
     if (tagsToSearch.isEmpty()) {
       // No specific tag requested; use followed tags.
