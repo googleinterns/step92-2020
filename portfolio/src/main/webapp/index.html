@@ -41,6 +41,9 @@
       <button onclick="showPostForm()">Click here to create a post</button>
       <button onclick="setNicknameForm()">Set your nickname</button>
       <div id="blogcontent">
+        <div id="posts-load">
+          <button class="loadPostsBtn" id="load-posts" onclick="loadAllPosts()">Load All Posts</button>
+        </div>
         <h1>Blog</h1>
         <p>Welcome to the BIPOC blog, a space to uplift BIPOC and share resources.</p>
         <form id="post-form" enctype="multipart/form-data">
@@ -53,10 +56,10 @@
             <option value="#animals">#animals</option>
             <option value="#business">#business</option>
             <option value="#education">#education</option>
+            <option value="#environment">#environment</option>
             <option value="#games">#games</option>
             <option value="#music">#music</option>
-            <option value="#nature">#nature</option>
-            <option value="#space">#space</option>
+            <option value="#politics">#politics</option>
             <option value="#wellbeing">#wellbeing</option>
           </select>
           <br>

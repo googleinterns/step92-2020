@@ -25,11 +25,13 @@ public final class TagsUtils {
  
     // Check to see if user follows any tags
     if (!LoadFollowedTags.hasFollowedTags(email)) {
+      System.out.println("follows no tags!");
       return;
     }
     List<FollowedTag> userFollowedTags = LoadFollowedTags.getFollowedTags(email);
     for (FollowedTag tag : userFollowedTags) {
       if (!tagsToSearch.contains(tag.getTag())) {
+        System.out.println("adding: " + tag.getTag());
         tagsToSearch.add(tag.getTag());
       }
     } 
