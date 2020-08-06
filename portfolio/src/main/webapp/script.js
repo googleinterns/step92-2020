@@ -105,10 +105,10 @@ async function loadPosts() {
   const HOME_LOAD_AMOUNT = 5;
   fetch('/data').then(response => response.json()).then((msgs) => {
     const statsListElement = document.getElementById('posts-list');
-    const homeListElement = document.getElementById('home-comments-tagselectcontainer');
+    const homeListElement = document.getElementById('home-comments-container');
     var i = 1;
     msgs.forEach((msg) => {
-      statsListElement.appendChild(createPostsElements(msg));
+      statsListElement.appendChild(createListElement(msg));
       statsListElement.appendChild(createImgElement(msg.image));
       let msgReplies = msg.messageReplies;
       let repliesContainer = document.querySelector(`#repliesli${CSS.escape(msg.id)}`);
@@ -121,7 +121,7 @@ async function loadPosts() {
       if (i > HOME_LOAD_AMOUNT) {
         return true;
       }
-      homeListElement.appendChild(createPostsElementsHome(msg));
+      homeListElement.appendChild(createListElementHome(msg));
       homeListElement.appendChild(createImgElement(msg.image));
       i++;
     });

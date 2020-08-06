@@ -109,25 +109,6 @@ public class DataServlet extends HttpServlet {
     response.sendRedirect("/index.html");  
   }
 
-  // Takes BlogMessage details and puts in datastore.
-  private void putBlogsInDatastore(
-        String tag, String message, String nickname, long parentID, String image) {
-    // Only put BlogMessages with a message in datastore.
-    if (message == null || message.isEmpty()) {
-      return;
-    }
-    Entity blogMessageEntity = new Entity(BlogConstants.BLOG_ENTITY_KIND);
-    blogMessageEntity.setProperty(BlogConstants.NICKNAME, nickname);
-    blogMessageEntity.setProperty("text", message);
-    blogMessageEntity.setProperty(BlogConstants.TIME, System.currentTimeMillis());
-    blogMessageEntity.setProperty("tag", tag);
-    blogMessageEntity.setProperty(BlogConstants.PARENTID_PARAMETER, parentID);
-    blogMessageEntity.setProperty(BlogConstants.IMAGE, image);
- 
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(blogMessageEntity);
-  }
- 
   // Returns a URL that points to the uploaded file, or null if the user didn't upload a file.
   private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
     BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();

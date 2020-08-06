@@ -165,7 +165,7 @@ public final class DatastoreUtilsTest {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     assertEquals(0, ds.prepare(new Query(BlogConstants.BLOG_ENTITY_KIND)).countEntities(withLimit(5)));
     
-    DatastoreUtils.putBlogsInDatastore(postTag, post, nickname, parentID);
+    DatastoreUtils.putBlogsInDatastore(postTag, post, nickname, parentID, "");
     assertEquals(1, ds.prepare(new Query(BlogConstants.BLOG_ENTITY_KIND)).countEntities(withLimit(5)));
   }
 
@@ -178,13 +178,13 @@ public final class DatastoreUtilsTest {
     long parentID = 0;
     
     // Null posts aren't allowed.
-    DatastoreUtils.putBlogsInDatastore(postTag, post, nickname, parentID);
+    DatastoreUtils.putBlogsInDatastore(postTag, post, nickname, parentID, "");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     assertEquals(0, ds.prepare(new Query(BlogConstants.BLOG_ENTITY_KIND)).countEntities(withLimit(5)));
 
     // Empty posts aren't allowed.
     String newPost = "";
-    DatastoreUtils.putBlogsInDatastore(postTag, newPost, nickname, parentID);
+    DatastoreUtils.putBlogsInDatastore(postTag, newPost, nickname, parentID, "");
     assertEquals(0, ds.prepare(new Query(BlogConstants.BLOG_ENTITY_KIND)).countEntities(withLimit(5)));
   }
 

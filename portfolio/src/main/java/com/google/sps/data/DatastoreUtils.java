@@ -41,7 +41,7 @@ public final class DatastoreUtils {
  
   // Takes BlogMessage details and puts in datastore.
   public static void putBlogsInDatastore(
-        String tag, String message, String nickname, long parentID) {
+        String tag, String message, String nickname, long parentID, String imageUrl) {
     // Only put BlogMessages with a message in datastore.
     if (message == null || message.isEmpty()) {
       return;
@@ -52,6 +52,7 @@ public final class DatastoreUtils {
     blogMessageEntity.setProperty(BlogConstants.TIME, System.currentTimeMillis());
     blogMessageEntity.setProperty("tag", tag);
     blogMessageEntity.setProperty(BlogConstants.PARENTID_PARAMETER, parentID);
+    blogMessageEntity.setProperty(BlogConstants.IMAGE, imageUrl);
  
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(blogMessageEntity);
